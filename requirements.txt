@@ -4,3 +4,8 @@ scikit-learn
 xgboost
 pandas
 streamlit
+seaborn
+matplotlib
+imbalanced-learn
+wordcloud
+plotly

@@ -3,9 +3,7 @@ import pandas as pd
 import pickle
 from scipy.sparse import hstack, csr_matrix
 
-# ======================================
 # Load Saved Files
-# ======================================
 
 with open("fraud_detection_model.pkl", "rb") as f:
     model_xgb = pickle.load(f)
@@ -22,9 +20,7 @@ with open("ordinal_encoding.pkl", "rb") as f:
 with open("frequency_encoding.pkl", "rb") as f:
     freq_encodings = pickle.load(f)
 
-# ======================================
 # Page Configuration
-# ======================================
 
 st.set_page_config(
     page_title="Fake Job Detection System",
@@ -32,9 +28,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ======================================
 # Title
-# ======================================
 
 st.title("💼 Fake Job Posting Detection System")
 
@@ -46,9 +40,7 @@ Please fill in the job details below.
 
 st.markdown("---")
 
-# ======================================
 # Job Information Section
-# ======================================
 
 st.header("📌 Job Information")
 
@@ -77,9 +69,7 @@ benefits = st.text_area(
     placeholder="Example: Health Insurance, Paid Leave, Bonus..."
 )
 
-# ======================================
 # Employment Details
-# ======================================
 
 st.header("🧾 Employment Details")
 
@@ -120,9 +110,7 @@ required_education = st.selectbox(
     ]
 )
 
-# ======================================
 # Company Details
-# ======================================
 
 st.header("🏢 Company & Location Details")
 
@@ -146,15 +134,11 @@ location = st.text_input(
     placeholder="Example: Hyderabad, India"
 )
 
-# ======================================
 # Additional Information
-# ======================================
 
 st.header("⚙️ Additional Information")
 
-# ======================================
 # Work Mode
-# ======================================
 
 st.header("💻 Work Mode")
 
@@ -188,9 +172,7 @@ has_questions = st.selectbox(
 
 st.markdown("---")
 
-# ======================================
 # Prediction Button
-# ======================================
 
 if st.button("🔍 Verify Job Posting"):
 
@@ -229,43 +211,21 @@ if st.button("🔍 Verify Job Posting"):
 
     test_df = pd.DataFrame([sample_job])
 
-    # ======================================
     # Combine Text Columns
-    # ======================================
 
-    text_cols = [
-        'title',
-        'company_profile',
-        'description',
-        'requirements',
-        'benefits'
-    ]
+    text_cols = ['title','company_profile','description','requirements','benefits']
 
-    test_df['combined_text'] = (
-        test_df[text_cols]
-        .fillna('')
-        .agg(' '.join, axis=1)
-    )
+    test_df['combined_text'] = (test_df[text_cols].fillna('').agg(' '.join, axis=1))
 
-    # ======================================
     # TF-IDF Features
-    # ======================================
 
-    X_tfidf = tfidf.transform(
-        test_df['combined_text']
-    )
+    X_tfidf = tfidf.transform(test_df['combined_text'])
 
-    # ======================================
     # One Hot Encoding
-    # ======================================
 
-    X_ohe = ohe.transform(
-        test_df[['employment_type']]
-    )
+    X_ohe = ohe.transform(test_df[['employment_type']])
 
-    # ======================================
     # Ordinal Encoding
-    # ======================================
 
     ordinal_cols = [
         'required_experience',
@@ -276,9 +236,7 @@ if st.button("🔍 Verify Job Posting"):
         test_df[ordinal_cols]
     )
 
-    # ======================================
     # Frequency Encoding
-    # ======================================
 
     freq_cols = [
         'industry',
@@ -289,13 +247,9 @@ if st.button("🔍 Verify Job Posting"):
 
     for col in freq_cols:
 
-        test_df[col] = test_df[col].map(
-            freq_encodings[col]
-        ).fillna(0)
+        test_df[col] = test_df[col].map(freq_encodings[col]).fillna(0)
 
-    # ======================================
     # Drop Unwanted Columns
-    # ======================================
 
     drop_cols = [
         'title',
@@ -309,26 +263,15 @@ if st.button("🔍 Verify Job Posting"):
 
     X_sparse_df = test_df.drop(columns=drop_cols)
 
-    # ======================================
     # Convert to Numeric
-    # ======================================
 
-    X_sparse_df = X_sparse_df.apply(
-        pd.to_numeric,
-        errors='coerce'
-    ).fillna(0)
+    X_sparse_df = X_sparse_df.apply(pd.to_numeric,errors='coerce').fillna(0)
 
-    # ======================================
     # Sparse Matrix
-    # ======================================
+    X_sparse = csr_matrix(X_sparse_df.values)
 
-    X_sparse = csr_matrix(
-        X_sparse_df.values
-    )
-
-    # ======================================
+    
     # Final Features
-    # ======================================
 
     X_test = hstack([
         X_sparse,
@@ -336,9 +279,7 @@ if st.button("🔍 Verify Job Posting"):
         X_tfidf
     ])
 
-    # ======================================
     # Prediction
-    # ======================================
 
     proba = model_xgb.predict_proba(X_test)
 
@@ -349,7 +290,7 @@ if st.button("🔍 Verify Job Posting"):
     st.header("📊 Prediction Result")
 
     st.write(
-        f"Probability of being Fake: {round(fake_probability * 100, 2)}%"
+        f"Probability of being Fake: {float(fake_probability * 100): .2f}%"
     )
 
     if fake_probability > 0.35:
@@ -360,9 +301,7 @@ if st.button("🔍 Verify Job Posting"):
 
         st.success("✅ This Job Posting appears to be REAL")
 
-# ======================================
 # Footer
-# ======================================
 
 st.markdown("---")
 
