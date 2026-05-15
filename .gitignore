@@ -23,14 +23,11 @@ env/
 *.ipynb
 
 # ML / Data
-*.csv
 *.tsv
 *.json
 *.parquet
 *.h5
 *.hdf5
-*.pkl
-*.pickle
 *.npy
 *.npz
 
